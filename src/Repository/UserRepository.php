@@ -13,5 +13,17 @@ class UserRepository extends ServiceEntityRepository
         parent::__construct($registry, User::class);
     }
 
+    public function clientForUser($user): array
+    {  
+        $qb = $this->createQueryBuilder('u')
+            ->where("u.id = :user")
+            ->setParameter('user', $user);
+    
+        $query = $qb->getQuery();
+    
+        return $query->execute();
+    
+    }
+
 
 }

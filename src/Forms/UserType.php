@@ -5,7 +5,10 @@ namespace App\Forms;
 use App\Entity\User;
 use App\Entity\Client;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\NotBlank;
@@ -23,17 +26,15 @@ class UserType extends AbstractType
             ->add('lastname')
             ->add('nickname')
             ->add('email')
-            ->add('birthday')
-            ->add('client', EntityType::class, [
-                // looks for choices from this entity
-                'class' => Client::class,
-            
-                // uses the User.username property as the visible option string
-                'choice_label' => 'nickname',
-            
-                // used to render a select box, check boxes or radios
-                // 'multiple' => true,
-                // 'expanded' => true,
+            ->add('birthday', TextType::class, array(
+                'required' => false,
+                'mapped' => false,
+                'empty_data' => null,
+                'attr' => array(
+                    'placeholder' => 'mm/dd/yyyy'
+                )))
+            ->add('client', IntegerType::class,[
+                'mapped' => false,
             ])
         ;
     }
@@ -42,6 +43,7 @@ class UserType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => User::class,
+            'csrf_protection' => false,
         ]);
     }
 }
