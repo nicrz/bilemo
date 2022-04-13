@@ -7,6 +7,7 @@ use FOS\RestBundle\Controller\Annotations\View;
 use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\Controller\Annotations\Delete;
 use App\Entity\User;
+use App\Entity\Client;
 use App\Repository\UserRepository;
 use App\Forms\UserType;
 use Doctrine\Persistence\ManagerRegistry;
@@ -24,6 +25,7 @@ use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Cache;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 
 class UserController extends AbstractFOSRestController
 {
@@ -31,50 +33,108 @@ class UserController extends AbstractFOSRestController
     /**
      * Lists all users for one client.
      * @Rest\Get("/api/v1/users/{client}", name="client_userslist")
+     * @IsGranted("ROLE_USER")
      *
      * @return Response
      */
     public function usersForClient($client, ManagerRegistry $doctrine)
     {
-        $users = $doctrine->getRepository(User::class)->findBy(['client' => $client]);
 
+        $user = $this->get('security.token_storage')->getToken()->getUser();
+        if(!empty($user)){
+        $userId = $user->getId();
+        }
+
+        if ($client != $userId){
+
+        return new Response('Forbidden.', 403);
+
+        }else{
+
+        $users = $doctrine->getRepository(User::class)->findBy(['client' => $client]);
         return $this->handleView($this->view($users));
+
+        }
+
     }
 
     /**
      * Show details for one user.
      * @Rest\Get("/api/v1/user/{id}", name="user_details")
+     * @IsGranted("ROLE_USER")
      *
      * @return Response
      */
     public function userDetails($id, ManagerRegistry $doctrine)
     {
-        $user = $doctrine->getRepository(User::class)->find($id);
 
-        return $this->handleView($this->view($user));
+        $clients = $doctrine->getRepository(User::class)->clientForUser($id);
+
+        foreach ($clients as $client){
+            $idclient = $client->getClient();
+        }
+
+        $usersession = $this->get('security.token_storage')->getToken()->getUser();
+        if(!empty($usersession)){
+        $userId = $usersession->getId();
+        }
+
+        if ($idclient != $userId){
+
+            return new Response('Forbidden.', 403);
+    
+        }else{
+
+            $user = $doctrine->getRepository(User::class)->find($id);
+            return $this->handleView($this->view($user));
+
+        }
     }
 
     /**
-     * @Post(
-     *     path = "/api/v1/new_user/{client}",
-     *     name = "new_user"
-     * )
-     * @View
-     */
-    /**
      * Add a new user
      * @Rest\View(statusCode=Response::HTTP_CREATED)
-     * @Rest\Post("/api/v1/new_user/{client}", name="new_user")
+     * @Rest\Post("/api/v1/add_user", name="new_user")
+     * @IsGranted("ROLE_USER")
      */
-    public function postSong(User $user, ManagerRegistry $doctrine)
+    public function postUser(Request $request, ManagerRegistry $doctrine, EntityManagerInterface $em)
     {
 
-        $em = $doctrine->getManager();
+        $user = $this->get('security.token_storage')->getToken()->getUser();
+        if(!empty($user)){
+        $userId = $user->getId();
+        }
 
-        $em->persist($user);
-        $em->flush();
+        $user = new User();
+        $user->setFirstname($request->get('firstname'));
+        $user->setLastname($request->get('lastname'));
+        $user->setNickname($request->get('nickname'));
+        $user->setEmail($request->get('email'));
+        $user->setBirthday($request->get('birthday'));
+        $user->setClient($request->get('client'));
 
-        return $user;
+        $idclient = $request->request->get('client');
+
+        if ($idclient != $userId){
+
+            return new Response('Forbidden.', 403);
+
+        }else{
+
+            $em->persist($user);
+            $em->flush();
+    
+            return $this->handleView(
+                $this->view(
+                    [
+                        'status' => 'ok',
+                    ],
+                    Response::HTTP_CREATED
+                )
+            );
+
+        }
+
     }
 
 
@@ -85,22 +145,42 @@ class UserController extends AbstractFOSRestController
      * )
      * @View
      */
-    public function deleteAction(User $user, Request $request, ManagerRegistry $doctrine)
+    public function deleteAction($id, User $user, Request $request, ManagerRegistry $doctrine)
     {
 
-        
-        $manager = $doctrine->getManager();
-        $manager->remove($user);
-        $manager->flush();
+        $clients = $doctrine->getRepository(User::class)->clientForUser($id);
 
-        return $this->handleView(
-            $this->view(
-                [
-                    'status' => 'ok',
-                ],
-                Response::HTTP_CREATED
-            )
-        );
+        foreach ($clients as $client){
+            $idclient = $client->getClient();
+        }
+
+        $usersession = $this->get('security.token_storage')->getToken()->getUser();
+        if(!empty($usersession)){
+        $userId = $usersession->getId();
+        }
+
+        if ($idclient != $userId){
+
+            return new Response('Forbidden.', 403);
+
+        }else{
+
+            $manager = $doctrine->getManager();
+            $manager->remove($user);
+            $manager->flush();
+    
+            return $this->handleView(
+                $this->view(
+                    [
+                        'status' => 'ok',
+                    ],
+                    Response::HTTP_CREATED
+                )
+            );
+
+        }
+
+    
     }
 
 

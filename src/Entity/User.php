@@ -50,17 +50,12 @@ class User
     private $email;
 
     /**
-     * @ORM\Column(type="datetime", nullable=true)
+     * @ORM\Column(type="string", nullable=true)
      */
     private $birthday;
 
     /**
-     * @var \Client
-     *
-     * @ORM\ManyToOne(targetEntity="App\Entity\Client", fetch="EAGER")
-     * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="client", referencedColumnName="id", onDelete="CASCADE")
-     * })
+     * @ORM\Column(type="integer", nullable=false)
      */
     private $client;
 
@@ -117,24 +112,24 @@ class User
         return $this;
     }
 
-    public function getBirthday(): ?\DateTimeInterface
+    public function getBirthday()
     {
         return $this->birthday;
     }
 
-    public function setBirthday(\DateTimeInterface $birthday): self
+    public function setBirthday(string $birthday): self
     {
         $this->birthday = $birthday;
 
         return $this;
     }
 
-    public function getClient(): ?Client
+    public function getClient()
     {
         return $this->client;
     }
 
-    public function setClient(?Client $client): self
+    public function setClient(int $client): self
     {
         $this->client = $client;
 
