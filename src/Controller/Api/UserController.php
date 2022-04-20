@@ -26,6 +26,7 @@ use Symfony\Component\Validator\ConstraintViolationList;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Cache;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Knp\Component\Pager\PaginatorInterface;
 
 class UserController extends AbstractFOSRestController
 {
@@ -37,7 +38,7 @@ class UserController extends AbstractFOSRestController
      *
      * @return Response
      */
-    public function usersForClient($client, ManagerRegistry $doctrine)
+    public function usersForClient($client, ManagerRegistry $doctrine, PaginatorInterface $paginator, Request $request)
     {
 
         $user = $this->get('security.token_storage')->getToken()->getUser();
@@ -52,7 +53,14 @@ class UserController extends AbstractFOSRestController
         }else{
 
         $users = $doctrine->getRepository(User::class)->findBy(['client' => $client]);
-        return $this->handleView($this->view($users));
+
+        $paginatedusers = $paginator->paginate(
+            $users, // Request containing the data to be paginated (here our articles)
+            $request->query->getInt('page', 1), // Current page number, passed in the URL, 1 if no page
+            10 // Number of results per page
+        );
+
+        return $this->handleView($this->view($paginatedusers));
 
         }
 

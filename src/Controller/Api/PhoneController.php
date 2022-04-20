@@ -23,6 +23,7 @@ use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Cache;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
+use Knp\Component\Pager\PaginatorInterface;
 
 class PhoneController extends AbstractFOSRestController
 {
@@ -33,11 +34,17 @@ class PhoneController extends AbstractFOSRestController
      *
      * @return Response
      */
-    public function phonesList(ManagerRegistry $doctrine)
+    public function phonesList(ManagerRegistry $doctrine, Request $request, PaginatorInterface $paginator)
     {
         $phones = $doctrine->getRepository(Phone::class)->findAll();
 
-        return $this->handleView($this->view($phones));
+        $paginatedphones = $paginator->paginate(
+            $phones, // Request containing the data to be paginated (here our articles)
+            $request->query->getInt('page', 1), // Current page number, passed in the URL, 1 if no page
+            10 // Number of results per page
+        );
+
+        return $this->handleView($this->view($paginatedphones));
     }
 
     /**
