@@ -1,38 +1,37 @@
 # Installation
 
 ## Contexte
-Jimmy Sweat est un entrepreneur ambitieux passionné de snowboard. Son objectif est la création d'un site collaboratif pour faire connaître ce sport auprès du grand public et aider à l'apprentissage des figures (tricks).
+BileMo est une entreprise offrant toute une sélection de téléphones mobiles haut de gamme.
 
-Il souhaite capitaliser sur du contenu apporté par les internautes afin de développer un contenu riche et suscitant l’intérêt des utilisateurs du site. Par la suite, Jimmy souhaite développer un business de mise en relation avec les marques de snowboard grâce au trafic que le contenu aura généré.
+Vous êtes en charge du développement de la vitrine de téléphones mobiles de l’entreprise BileMo. Le business modèle de BileMo n’est pas de vendre directement ses produits sur le site web, mais de fournir à toutes les plateformes qui le souhaitent l’accès au catalogue via une API (Application Programming Interface). Il s’agit donc de vente exclusivement en B2B (business to business).
 
-Pour ce projet, nous allons nous concentrer sur la création technique du site pour Jimmy.
+Il va falloir que vous exposiez un certain nombre d’API pour que les applications des autres plateformes web puissent effectuer des opérations.
 
-Votre mission : créer un site communautaire pour apprendre les figures de snowboard
-Votre mission : créer un site communautaire pour apprendre les figures de snowboard
+Besoin client
+Le premier client a enfin signé un contrat de partenariat avec BileMo ! C’est le branle-bas de combat pour répondre aux besoins de ce premier client qui va permettre de mettre en place l’ensemble des API et de les éprouver tout de suite.
 
-## Description du besoin
-Vous êtes chargé de développer le site répondant aux besoins de Jimmy. Vous devez ainsi implémenter les fonctionnalités suivantes : 
+ Après une réunion dense avec le client, il a été identifié un certain nombre d’informations. Il doit être possible de :
 
-un annuaire des figures de snowboard. Vous pouvez vous inspirer de la liste des figures sur Wikipédia. Contentez-vous d'intégrer 10 figures, le reste sera saisi par les internautes ;
-la gestion des figures (création, modification, consultation) ;
-un espace de discussion commun à toutes les figures.
+consulter la liste des produits BileMo ;
+consulter les détails d’un produit BileMo ;
+consulter la liste des utilisateurs inscrits liés à un client sur le site web ;
+consulter le détail d’un utilisateur inscrit lié à un client ;
+ajouter un nouvel utilisateur lié à un client ;
+supprimer un utilisateur ajouté par un client.
+Seuls les clients référencés peuvent accéder aux API. Les clients de l’API doivent être authentifiés via OAuth ou JWT.
 
-Pour implémenter ces fonctionnalités, vous devez créer les pages suivantes :
-
-- la page d’accueil où figurera la liste des figures ; 
-- la page de création d'une nouvelle figure ;
-- la page de modification d'une figure ;
-- la page de présentation d’une figure (contenant l’espace de discussion commun autour d’une figure).
-- L’ensemble des spécifications détaillées pour les pages à développer est accessible ici : Spécifications détaillées.
+Vous avez le choix entre mettre en place un serveur OAuth et y faire appel (en utilisant le FOSOAuthServerBundle), et utiliser Facebook, Google ou LinkedIn. Si vous décidez d’utiliser JWT, il vous faudra vérifier la validité du token ; l’usage d’une librairie est autorisé.
 
 ## Identifiants administrateur
-- ruiz.nico64@gmail.com
+- orange@gmail.com
 - Test64170
 
 ## Configuration nécessaire
 - Serveur web local ou en ligne
 - Système de gestion de base de données relationnelle MySQL
 - Installer Composer sur sa machine
+- Logiciel Postman
+- OpenSSL
 
 ## Instructions d'installation
 
@@ -40,21 +39,29 @@ Pour implémenter ces fonctionnalités, vous devez créer les pages suivantes :
 ```
 git clone https://github.com/nicrz/snowtricks
 ```
-##### 2/ Créez une base de données dans PHPMyAdmin et importez-y le fichier P6_05_bdd.sql
+##### 2/ Créez une base de données dans PHPMyAdmin et importez-y le fichier bilemo.sql
 
 ##### 3/ Remplacez la ligne suivante de votre fichier .env avec les informations de connexions à la base de données que vous venez de créer.
 ```
-DATABASE_URL="mysql://db_user:db_password@127.0.0.1:3306/db_name?serverVersion=5.7
+DATABASE_URL=mysql://root:@127.0.0.1:3306/bilemo
 ```
 ##### 4/ Récupérez les dépendances du projet grâce à la commande suivante
 ```
 composer install
 ```
-##### 5/ Lancez le serveur Symfony grâce à la commande suivante
+##### 5/ Générez vos clés pour l'utilisation de JWT
 ```
-php bin/console server:start
+    $ mkdir -p config/jwt
+    $ openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096
+    $ openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout
 ```
-##### 5/ Vous pouvez accéder à votre application depuis l'adresse suivante
+##### 5/ Renseignez les données d'accès à vos clés privées dans le fichier .env 
 ```
-http://127.0.0.1:8000/
+###> lexik/jwt-authentication-bundle ###
+JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem
+JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem
+JWT_PASSPHRASE=VotrePassphrase
+###< lexik/jwt-authentication-bundle ###
 ```
+##### 6/ Votre API est prête à être utilisée, vous n'avez plus qu'à suivre les instructions de la documentation suivante pour utiliser votre API :
+https://documentationapibilemo.000webhostapp.com/
