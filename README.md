@@ -37,7 +37,7 @@ Vous avez le choix entre mettre en place un serveur OAuth et y faire appel (en u
 
 ##### 1/ Récupérez le projet github 
 ```
-git clone https://github.com/nicrz/snowtricks
+git clone https://github.com/nicrz/bilemo
 ```
 ##### 2/ Créez une base de données dans PHPMyAdmin et importez-y le fichier bilemo.sql
 
