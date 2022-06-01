@@ -55,7 +55,12 @@ class User
     private $birthday;
 
     /**
-     * @ORM\Column(type="integer", nullable=false)
+     * @var \Client
+     *
+     * @ORM\ManyToOne(targetEntity="App\Entity\Client", fetch="EAGER")
+     * @ORM\JoinColumns({
+     *   @ORM\JoinColumn(name="client", referencedColumnName="id", onDelete="CASCADE")
+     * })
      */
     private $client;
 
@@ -124,12 +129,12 @@ class User
         return $this;
     }
 
-    public function getClient()
+    public function getClient(): ?Client
     {
         return $this->client;
     }
 
-    public function setClient(int $client): self
+    public function setClient(?Client $client): self
     {
         $this->client = $client;
 
