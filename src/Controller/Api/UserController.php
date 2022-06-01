@@ -33,12 +33,12 @@ class UserController extends AbstractFOSRestController
 
     /**
      * Lists all users for one client.
-     * @Rest\Get("/api/v1/users/{client}", name="client_userslist")
+     * @Rest\Get("/api/v1/users", name="client_userslist")
      * @IsGranted("ROLE_USER")
      *
      * @return Response
      */
-    public function usersForClient($client, ManagerRegistry $doctrine, PaginatorInterface $paginator, Request $request)
+    public function usersForClient(ManagerRegistry $doctrine, PaginatorInterface $paginator, Request $request)
     {
 
         $user = $this->get('security.token_storage')->getToken()->getUser();
@@ -46,13 +46,7 @@ class UserController extends AbstractFOSRestController
         $userId = $user->getId();
         }
 
-        if ($client != $userId){
-
-        return new Response('Forbidden.', 403);
-
-        }else{
-
-        $users = $doctrine->getRepository(User::class)->findBy(['client' => $client]);
+        $users = $doctrine->getRepository(User::class)->findBy(['client' => $user]);
 
         $paginatedusers = $paginator->paginate(
             $users, // Request containing the data to be paginated (here our articles)
@@ -62,7 +56,7 @@ class UserController extends AbstractFOSRestController
 
         return $this->handleView($this->view($paginatedusers));
 
-        }
+        
 
     }
 
@@ -79,7 +73,7 @@ class UserController extends AbstractFOSRestController
         $clients = $doctrine->getRepository(User::class)->clientForUser($id);
 
         foreach ($clients as $client){
-            $idclient = $client->getClient();
+            $idclient = $client->getClient()->getId();
         }
 
         $usersession = $this->get('security.token_storage')->getToken()->getUser();
@@ -119,18 +113,10 @@ class UserController extends AbstractFOSRestController
         $user->setNickname($request->get('nickname'));
         $user->setEmail($request->get('email'));
         $user->setBirthday($request->get('birthday'));
-        $user->setClient($request->get('client'));
+        $user->setClient($this->get('security.token_storage')->getToken()->getUser());
 
-        $idclient = $request->request->get('client');
-
-        if ($idclient != $userId){
-
-            return new Response('Forbidden.', 403);
-
-        }else{
-
-            $em->persist($user);
-            $em->flush();
+        $em->persist($user);
+        $em->flush();
     
             return $this->handleView(
                 $this->view(
@@ -141,7 +127,7 @@ class UserController extends AbstractFOSRestController
                 )
             );
 
-        }
+        
 
     }
 
